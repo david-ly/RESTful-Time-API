@@ -1,0 +1,18 @@
+{
+  "name": "timeapi",
+  "version": "1.0.0",
+  "description": "Barebones Time API Implementation",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Restify"
+  ],
+  "author": "David Ly",
+  "license": "ISC",
+  "dependencies": {
+    "mongojs": "^2.4.0",
+    "restify": "^4.3.0"
+  }
+}
