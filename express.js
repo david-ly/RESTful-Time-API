@@ -1,7 +1,6 @@
-'use strict'
-
 import dotenv from 'dotenv'
 import express from 'express'
+import { DateTime } from 'luxon'
 import mongoose from 'mongoose'
 
 dotenv.config()
@@ -45,6 +44,21 @@ app.get('/time/:id', async (req, res) => {
     const entry = await TimeEntry.findById(req.params.id)
     if (!entry) return res.status(404).json({ error: 'Time entry not found' })
     return res.json(entry)
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/time/:id/:zone', async (req, res) => {
+  try {
+    const entry = await TimeEntry.findById(req.params.id)
+    if (!entry) return res.status(404).json({ error: 'Time entry not found' })
+
+    const tz = decodeURIComponent(req.params.zone)
+    const local = DateTime.fromJSDate(entry.time).setZone(tz)
+    if (!local.isValid) return res.status(400).json({error: `Invalid TZ ${tz}`})
+
+    return res.json({...entry.toObject(), time: local.toISO()})
   } catch (err) {
     return res.status(500).json({ error: err.message })
   }

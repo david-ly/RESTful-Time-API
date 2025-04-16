@@ -4,10 +4,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "strict": true,
     "outDir": "./dist",
-    "rootDir": "./",
-    "skipLibCheck": true
+    "rootDir": "./"
   },
   "include": [
     "./**/*.ts"

@@ -3,6 +3,7 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "luxon": "^3.6.1",
     "mongoose": "^8.12.1"
   },
   "description": "Barebones Time API Implementation",
@@ -11,6 +12,7 @@
     "@types/express": "^5.0.1",
     "@types/mongoose": "^5.11.96",
     "@types/node": "^22.13.11",
+    "eslint": "^9.24.0",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
@@ -24,6 +26,8 @@
     "dev:ts": "nodemon --exec 'node --loader ts-node/esm' express.ts",
     "start:js": "node express.js",
     "dev:js": "nodemon express.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
