@@ -43,21 +43,12 @@ app.get('/time/:id', async (req, res) => {
   try {
     const entry = await TimeEntry.findById(req.params.id)
     if (!entry) return res.status(404).json({ error: 'Time entry not found' })
-    return res.json(entry)
-  } catch (err) {
-    return res.status(500).json({ error: err.message })
-  }
-})
+    const {zone} = req.query
+    if (!zone) return res.json(entry)
 
-app.get('/time/:id/:zone', async (req, res) => {
-  try {
-    const entry = await TimeEntry.findById(req.params.id)
-    if (!entry) return res.status(404).json({ error: 'Time entry not found' })
-
-    const tz = decodeURIComponent(req.params.zone)
+    const tz = decodeURIComponent(zone)
     const local = DateTime.fromJSDate(entry.time).setZone(tz)
     if (!local.isValid) return res.status(400).json({error: `Invalid TZ ${tz}`})
-
     return res.json({...entry.toObject(), time: local.toISO()})
   } catch (err) {
     return res.status(500).json({ error: err.message })
