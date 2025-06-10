@@ -3,6 +3,7 @@ import express from 'express'
 import { createClient } from 'redis'
 import router from './routes/router.js'
 import { connectMongo } from './dbs/mongo.js'
+import { createClient } from 'redis'
 
 dotenv.config()
 
