@@ -104,8 +104,20 @@ app.get('/', (_, res) => {
   return res.json({message: 'pong', ts: new Date().getTime()})
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`)
+})
+
+process.on('SIGINT', () => shutdown('SIGINT'))
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+
+process.on('uncaughtException', (err) => {
+  console.error('💥 Uncaught Exception:', err?.stack || err)
+  process.exit(1)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('💥 Unhandled Rejection:', reason)
+  process.exit(1)
 })
 
 function validateId(req, res, next) {
@@ -114,4 +126,22 @@ function validateId(req, res, next) {
     return res.status(400).json({error: 'Invalid ID format'})
   }
   return next()
+}
+
+function shutdown(signal) {
+  console.log(`\nReceived ${signal}. Starting graceful shutdown...`)
+  server.close(err => {
+    if (err) {
+      console.error('Error closing server:', err)
+      process.exit(1)
+    }
+
+    console.log('✅ All connections closed. Exiting.')
+    process.exit(0)
+  })
+
+  setTimeout(() => {
+    console.warn('⏱️ Force shutdown: took too long.')
+    process.exit(1)
+  }, 10000).unref()
 }
