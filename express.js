@@ -7,7 +7,6 @@ import { createClient } from 'redis'
 dotenv.config()
 const {MONGODB_URI, PORT, REDIS_URL} = process.env
 
-// Setup Redis connection
 if (!REDIS_URL) {
   throw new Error('REDIS_URL is not defined in environment variables')
 }
@@ -64,7 +63,7 @@ app.get('/time/:id', validateId, async (req, res) => {
     if (cached) {
       console.log(`Cache hit: ${id}`)
       if (!zone) return res.json(JSON.parse(cached))
-      
+
       const [entry, err] = convertTZ(JSON.parse(cached), zone)
       if (err) return res.status(400).json(err)
       return res.json(entry)
@@ -74,7 +73,7 @@ app.get('/time/:id', validateId, async (req, res) => {
     if (!entry) return res.status(404).json({error: 'Time entry not found'})
     client.setEx(key, 300, JSON.stringify(entry)) // Cache the original entry and &-
     if (!zone) return res.json(entry)
-    
+
     // -& convert to given TZ (on server) if provided as query param
     return res.json(convertTZ(entry, zone))
   } catch (err) {
@@ -128,8 +127,20 @@ app.get('/', (_, res) => {
   return res.json({message: 'pong', ts: new Date().getTime()})
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`)
+})
+
+process.on('SIGINT', () => shutdown('SIGINT'))
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+
+process.on('uncaughtException', (err) => {
+  console.error('💥 Uncaught Exception:', err?.stack || err)
+  process.exit(1)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('💥 Unhandled Rejection:', reason)
+  process.exit(1)
 })
 
 function validateId(req, res, next) {
@@ -140,9 +151,20 @@ function validateId(req, res, next) {
   return next()
 }
 
-function convertTZ(entry, zone) {
-  const tz = decodeURIComponent(zone)
-  const local = DateTime.fromISO(entry.time).setZone(tz)
-  if (!local.isValid) return [400, {error: `Invalid TZ ${tz}`}]
-  return [{...entry, time: local.toISO()}]
+function shutdown(signal) {
+  console.log(`\nReceived ${signal}. Starting graceful shutdown...`)
+  server.close(err => {
+    if (err) {
+      console.error('Error closing server:', err)
+      process.exit(1)
+    }
+
+    console.log('✅ All connections closed. Exiting.')
+    process.exit(0)
+  })
+
+  setTimeout(() => {
+    console.warn('⏱️ Force shutdown: took too long.')
+    process.exit(1)
+  }, 10000).unref()
 }
