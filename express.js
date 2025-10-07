@@ -1,28 +1,18 @@
 import dotenv from 'dotenv'
 import express from 'express'
-import { createClient } from 'redis'
+import { connectMongo, connectRedis } from './dbs/index.js'
 import router from './routes/router.js'
-import { connectMongo } from './dbs/mongo.js'
-import { createClient } from 'redis'
 
 dotenv.config()
 
-const {PORT, REDIS_URL} = process.env
+const {PORT} = process.env
 if (!PORT) {
   throw new Error('PORT is not defined in environment variables')
 }
-if (!REDIS_URL) {
-  throw new Error('REDIS_URL is not defined in environment variables')
-}
-
-const client = createClient({url: REDIS_URL})
-client.on('error', (err) => console.error('Redis Client Error:', err))
-client.on('connect', () => console.log('Connected to Redis'))
-await client.connect()
 
 await connectMongo()
+await connectRedis()
 
-// Initialize `express` app & routes
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))

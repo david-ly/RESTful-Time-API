@@ -21,7 +21,7 @@ const time_schema = new mongoose.Schema({
 const TimeEntry = mongoose.model('TimeEntry', time_schema)
 
 // Sample time entries
-const timeEntries = [
+const time_entries = [
   {
     description: "Morning Standup Meeting",
     time: DateTime.now().set({ hour: 9, minute: 0 }).toJSDate()
@@ -58,7 +58,7 @@ async function seed() {
     console.log('Connected to MongoDB')
 
     // Insert new entries
-    const result = await TimeEntry.insertMany(timeEntries)
+    const result = await TimeEntry.insertMany(time_entries)
     console.log(`Successfully inserted ${result.length} time entries`)
 
     // Log the inserted entries
@@ -75,4 +75,4 @@ async function seed() {
   }
 }
 
-seed() 
+seed()
