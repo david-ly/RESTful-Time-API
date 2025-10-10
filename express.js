@@ -1,7 +1,8 @@
 import dotenv from 'dotenv'
 import express from 'express'
+import { connectMongo, connectRedis } from './dbs/index.js'
 import router from './routes/router.js'
-import { connectMongo } from './dbs/mongo.js'
+
 
 dotenv.config()
 
@@ -11,6 +12,7 @@ if (!PORT) {
 }
 
 await connectMongo()
+await connectRedis()
 
 const app = express()
 app.use(express.json())

@@ -1,7 +1,8 @@
 import express from 'express'
 import { DateTime } from 'luxon'
 import { TimeEntry } from '../dbs/mongo.js'
-import { validateId } from './middleware.js'
+import { redis } from '../dbs/redis.js'
+import { convertTZ, validateId } from './middleware.js'
 
 const FIND_UPD_OPTS = {new: true, runValidators: true}
 
@@ -25,15 +26,27 @@ async function getTimeEntryByID(req, res) {
   try {
     const {id} = req.params
     const {zone} = req.query
+    const key = `cache:${id}`
+
+    const cached = await redis.get(key)
+    if (cached) {
+      console.log(`Cache hit: ${id}`)
+      const parsed = JSON.parse(cached)
+      if (!zone) return res.json(parsed)
+
+      const [entry, err] = convertTZ(parsed, zone)
+      if (err) return res.status(400).json(err)
+      return res.json(entry)
+    }
 
     const entry = await TimeEntry.findById(id)
     if (!entry) return res.status(404).json({error: 'Time entry not found'})
+    redis.setEx(key, 300, JSON.stringify(entry))
     if (!zone) return res.json(entry)
 
-    const tz = decodeURIComponent(zone)
-    const local = DateTime.fromJSDate(entry.time).setZone(tz)
-    if (!local.isValid) return res.status(400).json({error: `Invalid TZ ${tz}`})
-    return res.json({...entry.toObject(), time: local.toISO()})
+    const [result, err] = convertTZ(entry, zone)
+    if (err) return res.status(400).json(err)
+    return res.json(result)
   } catch (err) {
     return res.status(500).json({error: err.message})
   }
