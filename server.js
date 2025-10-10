@@ -73,7 +73,7 @@ server.put('time/set/:id/:UTCtime', function (req, res, next) {
     return next()
 })
 
-server.del('time/delete/:id', function(req, res, next) {
+server.delete('time/delete/:id', function(req, res, next) {
 	db.time.remove({
 		id: req.params.id
 	}, function (err, time) {
