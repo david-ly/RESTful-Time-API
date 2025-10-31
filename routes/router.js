@@ -1,7 +1,7 @@
 import express from 'express'
 import { DateTime } from 'luxon'
 import { TimeEntry } from '../dbs/mongo.js'
-import { redis } from '../dbs/redis.js'
+import { getRedis } from '../dbs/redis.js'
 import { convertTZ, reviveDate, validateId } from './middleware.js'
 
 const CACHE_TTL_SEC = 300
@@ -90,7 +90,7 @@ async function deleteTimeEntry(req, res) {
     if (!deleted) return res.status(404).json({error: ERR_404_MSG(id)})
 
     const cache_key = `cache:${id}`
-    await redis.del(cache_key)
+    await getRedis().del(cache_key)
     return res.json({message: `Time entry [${id}] successfully deleted`})
   } catch (err) {
     return res.status(500).json({error: err.message})
@@ -99,11 +99,11 @@ async function deleteTimeEntry(req, res) {
 
 async function refreshEntry(entry) {
   const cache_key = `cache:${entry._id.toString()}`
-  return redis.setEx(cache_key, CACHE_TTL_SEC, JSON.stringify(entry))
+  return getRedis().setEx(cache_key, CACHE_TTL_SEC, JSON.stringify(entry))
 }
 
 async function retrieveEntry(id) {
-  const cached = await redis.get(`cache:${id}`)
+  const cached = await getRedis().get(`cache:${id}`)
   if (cached) {
     console.debug(`Cached entry [${id}] retrieved`)
     return JSON.parse(cached, reviveDate)

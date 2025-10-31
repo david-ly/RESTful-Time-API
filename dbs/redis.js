@@ -23,4 +23,11 @@ async function connectRedis() {
   }
 }
 
-export { connectRedis, redis }
+function getRedis() {
+  if (!redis) {
+    throw new Error('Redis client not initialized. Call connectRedis() first.')
+  }
+  return redis
+}
+
+export { connectRedis, getRedis }
